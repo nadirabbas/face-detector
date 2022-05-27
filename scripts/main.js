@@ -59,7 +59,9 @@ function drawOvervideo(input, detections) {
       div.style.top = (top + iT) + 'px'
       div.style.width = width + 'px'
       div.style.height = height + 'px'
-      div.style.backgroundColor = '#000'
+      div.style.backgroundColor = 'rgba(255, 255, 255, 0)'
+      div.style.backdropFilter = 'blur(30px)'
+      div.style.borderRadius = '100%';
 
       document.body.appendChild(div)
     }
