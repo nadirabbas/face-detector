@@ -1,0 +1,9 @@
+{
+  "name": "face-detector-2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs-backend-wasm": "^3.18.0"
+  }
+}
