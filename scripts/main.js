@@ -2,11 +2,15 @@
   /* --------------- Initialize extension --------------- */
   const models = chrome.extension.getURL("/models");
   const wasm = chrome.extension.getURL("/wasm/");
-  Promise.all([
+  await Promise.all([
     faceapi.nets.ssdMobilenetv1.loadFromUri(models),
     faceapi.nets.tinyFaceDetector.loadFromUri(models),
     faceapi.nets.ageGenderNet.loadFromUri(models),
-  ]).then(setToggleHotkey);
+    faceapi.nets.faceLandmark68Net.loadFromUri(models),
+  ]).then(() => {
+    setToggleHotkey();
+    setSpeedHotkey();
+  });
 
   // Use WASM resources
   faceapi.tf.setWasmPaths(wasm);
@@ -17,6 +21,9 @@
     input: null,
     isRunning: null,
     animFrame: null,
+    type: "fast",
+    fastNet: new faceapi.TinyFaceDetectorOptions(),
+    slowNet: new faceapi.SsdMobilenetv1Options(),
   };
   const state = { ...initialState };
 
@@ -24,7 +31,7 @@
   const setBadge = () => {
     chrome.runtime.sendMessage({
       type: "SET_BADGE_TEXT",
-      text: state.isRunning ? "ON" : "OFF",
+      text: state.type.toUpperCase(),
       color: state.isRunning ? "#00FF00" : "#FF0000",
     });
   };
@@ -67,6 +74,17 @@
     });
   }
 
+  /* --------------- Speed hotkey --------------- */
+  function setSpeedHotkey() {
+    window.addEventListener("keydown", ({ key }) => {
+      if (key === "~") {
+        state.type = state.type === "fast" ? "slow" : "fast";
+      }
+
+      setBadge();
+    });
+  }
+
   /* --------------- The MAIN function --------------- */
   async function main() {
     // Set input
@@ -75,7 +93,11 @@
 
     // Detect faces
     const detections = await faceapi
-      .detectAllFaces(state.input, new faceapi.TinyFaceDetectorOptions())
+      .detectAllFaces(
+        state.input,
+        state.type === "fast" ? state.fastNet : state.slowNet
+      )
+      .withFaceLandmarks()
       .withAgeAndGender();
 
     // Draw over detected female face(s)
