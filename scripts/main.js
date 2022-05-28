@@ -20,6 +20,16 @@
   };
   const state = { ...initialState };
 
+  /* --------------- Set badge based on state --------------- */
+  const setBadge = () => {
+    chrome.runtime.sendMessage({
+      type: "SET_BADGE_TEXT",
+      text: state.isRunning ? "ON" : "OFF",
+      color: state.isRunning ? "#00FF00" : "#FF0000",
+    });
+  };
+  setBadge();
+
   /* --------------- Remove blocks --------------- */
   const removeBlocks = () => {
     document
@@ -51,6 +61,8 @@
           cancelAnimationFrame(animFrame);
           reset();
         }
+
+        setBadge();
       }
     });
   }
